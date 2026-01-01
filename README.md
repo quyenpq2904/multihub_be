@@ -1,101 +1,98 @@
-# Sketchroom
+# multihub_be
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+## Overview
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+### Purpose and Scope
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+This document provides a high-level introduction to the `multihub_be` repository, explaining its purpose, architecture, and organization. The repository is an Nx monorepo containing a microservices-based backend system built with NestJS, along with a frontend application.
 
-## Run tasks
+### What is multihub_be
 
-To run the dev server for your app, use:
+The `multihub_be` repository is a monorepo workspace managing distributed applications, specifically **Messenger** (currently available) and **SketchRoom** (coming soon). It implements a microservices architecture where independent NestJS applications operate as backend services, coordinated through an API Gateway pattern. The system supports real-time collaborative features, design management, asset handling, and user interactions through a combination of REST APIs, WebSocket connections, gRPC remote procedure calls, and event-driven messaging via Kafka.
 
-```sh
-npx nx serve sketchroom
-```
+## Repository Organization
 
-To create a production bundle:
+### Nx Monorepo Structure
 
-```sh
-npx nx build sketchroom
-```
+The repository uses [Nx](https://nx.dev) as its monorepo management tool, enabling efficient code sharing, task orchestration, and build optimization across multiple applications. The workspace is organized into two primary directories:
 
-To see all available targets to run for a project, run:
+- `apps/`: Contains the application projects.
+- `libs/`: Contains shared libraries.
 
-```sh
-npx nx show project sketchroom
-```
+The Nx workspace configuration defines plugin-based build orchestration using `@nx/webpack/plugin` for application bundling and `@nx/eslint/plugin` for code quality enforcement with module boundary rules.
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### Application Projects
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The workspace contains eight application projects in the `apps/` directory. The API Gateway (`api-gateway`) serves as the single entry point for client requests, routing them to appropriate backend services based on URL paths and authentication state.
 
-## Add new projects
+Each service is configured with a unique debug port (9229-9235) for independent development and debugging.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+## Technology Stack
 
-Use the plugin's generator to create new projects.
+### Core Framework and Runtime
 
-To generate a new application, use:
+The application stack is built on **NestJS 11.x**, a TypeScript-based Node.js framework that provides dependency injection, modular architecture, and built-in support for microservices patterns.
 
-```sh
-npx nx g @nx/nest:app demo
-```
+### Key Dependencies
 
-To generate a new library, use:
+- **Core**: `@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`
+- **Microservices & Communication**: `@nestjs/microservices`, `@grpc/grpc-js`, `kafkajs`
+- **Real-time**: `socket.io`, `@nestjs/websockets`, `@socket.io/redis-adapter`
+- **Database & Caching**: `typeorm`, `pg` (PostgreSQL), `ioredis` (Redis), `@nestjs/typeorm`
+- **Security & Validation**: `@nestjs/jwt`, `argon2`, `class-validator`, `class-transformer`
+- **Documentation**: `@nestjs/swagger`
 
-```sh
-npx nx g @nx/node:lib mylib
-```
+## Architecture Patterns
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### Service Communication
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The system implements multiple communication patterns optimized for different use cases:
 
-## Set up CI!
+- **API Gateway**: Entry point for client requests.
+- **gRPC**: Efficient inter-service communication.
+- **WebSocket (Socket.IO)**: Real-time communication for features like chat and collaboration.
+- **Kafka**: Event-driven messaging for asynchronous processing.
 
-### Step 1
+### Data Access Patterns
 
-To connect to Nx Cloud, run the following command:
+Data persistence is managed through **TypeORM**, providing an object-relational mapping layer over **PostgreSQL**. **Redis** serves dual purposes: caching frequently accessed data and providing pub/sub messaging for the Socket.IO adapter to enable horizontally scaled WebSocket connections.
 
-```sh
-npx nx connect
-```
+### Security Implementation
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+Authentication and authorization use JWT (JSON Web Tokens) managed by `@nestjs/jwt` with a dual-token architecture: short-lived access tokens and long-lived refresh tokens. Password storage employs `argon2`, a memory-hard hashing algorithm resistant to GPU-based cracking attacks. The API Gateway validates tokens before routing requests to backend services.
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Development Tooling
 
-### Step 2
+### Build System
 
-Use the following command to configure a CI workflow for your workspace:
+The monorepo uses **Nx** with plugin-based task orchestration. The `@nx/webpack` plugin compiles TypeScript applications to JavaScript bundles, while `@nx/eslint-plugin` enforces architectural boundaries preventing circular dependencies between applications and libraries.
 
-```sh
-npx nx g ci-workflow
-```
+### Code Quality Standards
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The workspace enforces code quality through:
 
-## Install Nx Console
+- **ESLint** and **typescript-eslint** for static analysis.
+- **Prettier** for consistent code formatting.
+- **TypeScript** for type safety.
+- **Module boundary enforcement** via `@nx/eslint-plugin` to maintain service isolation.
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+## Deployment Model
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The system deploys as containerized services orchestrated by Docker Compose. The CI/CD pipeline, implemented with GitHub Actions, triggers on semantic version tags (`v*.*.*`) and executes on a self-hosted runner.
 
-## Useful links
+The workflow performs:
 
-Learn more:
+1. Code checkout.
+2. Environment variable injection.
+3. Docker Compose build and deployment with `docker compose up --build -d`.
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This deployment strategy enables zero-downtime updates through container orchestration and ensures consistent environments across development and production.
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Getting Started
+
+To begin working with the repository:
+
+1.  **Development setup**: Configure the Nx workspace and install dependencies.
+2.  **Run services locally**: Use `npx nx serve <service-name>` to start individual applications.
+3.  **Debug services**: Attach VS Code debugger using preconfigured launch configurations.
+4.  **Build for production**: Execute `npx nx build <service-name>` to create production bundles.
