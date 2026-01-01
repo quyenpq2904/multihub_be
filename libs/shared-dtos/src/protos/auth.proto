@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc SignIn (LoginRequest) returns (LoginResponse);
+  rpc VerifyAccessToken (VerifyAccessTokenRequest) returns (VerifyAccessTokenResponse);
+  rpc GetMe (GetMeReq) returns (User);
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc SearchUser (SearchUserRequest) returns (SearchUserResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string fullName = 3;
+}
+
+message RegisterResponse {
+  string userId = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string userId = 1;
+  string accessToken = 2;
+  string refreshToken = 3;
+}
+
+
+message VerifyAccessTokenRequest {
+  string token = 1;
+}
+
+message VerifyAccessTokenResponse {
+  string id = 1;
+  string sessionId = 2;
+  int32 iat = 3;
+  int32 exp = 4;
+}
+
+message GetMeReq {
+  string userId = 1;
+}
+
+
+
+
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message SearchUserRequest {
+  string q = 1;
+  int32 limit = 2;
+  int32 page = 3;
+  string excludedUserId = 4;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string fullName = 3;
+  string avatar = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message SearchUserResponse {
+  repeated User data = 1;
+  PaginationMeta pagination = 2;
+}
+
+message PaginationMeta {
+  int32 page = 1;
+  int32 take = 2;
+  int32 itemCount = 3;
+  int32 pageCount = 4;
+  bool hasPreviousPage = 5;
+  bool hasNextPage = 6;
+}

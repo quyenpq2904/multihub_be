@@ -1,0 +1,306 @@
+syntax = "proto3";
+
+package chat;
+
+message CursorPagination {
+  int32 limit = 1;
+  optional string afterCursor = 2;
+  optional string beforeCursor = 3;
+  int32 totalRecords = 4;
+}
+
+service ChatService {
+  rpc CreateConversation (CreateConversationReq) returns (CreateConversationRes);
+  rpc GetConversations (GetConversationsReq) returns (GetConversationsRes);
+  rpc GetMessages (GetMessagesReq) returns (GetMessagesRes);
+  rpc CreateMessage (CreateMessageReq) returns (CreateMessageRes);
+  rpc MarkMessageAsRead (MarkMessageAsReadReq) returns (MarkMessageAsReadRes);
+  rpc AddMember (AddMemberReq) returns (AddMemberRes);
+  rpc RemoveMember (RemoveMemberReq) returns (RemoveMemberRes);
+  rpc UpdateConversation (UpdateConversationReq) returns (UpdateConversationRes);
+  rpc GetConversation (GetConversationReq) returns (Conversation);
+  rpc DeleteConversation (DeleteConversationReq) returns (DeleteConversationRes);
+  rpc DeleteMessage (DeleteMessageReq) returns (DeleteMessageRes);
+  
+  rpc AddReaction (AddReactionReq) returns (AddReactionRes);
+  rpc RemoveReaction (RemoveReactionReq) returns (RemoveReactionRes);
+  rpc GetReactions (GetReactionsReq) returns (GetReactionsRes);
+
+  rpc ToggleMute (ToggleMuteReq) returns (ToggleMuteRes);
+  rpc GetMuteStatus (GetMuteStatusReq) returns (GetMuteStatusRes);
+  
+  rpc PinMessage (PinMessageReq) returns (PinMessageRes);
+  rpc UnpinMessage (UnpinMessageReq) returns (UnpinMessageRes);
+  rpc GetPinnedMessages (GetPinnedMessagesReq) returns (GetPinnedMessagesRes);
+
+  rpc MarkConversationAsRead (MarkConversationAsReadReq) returns (MarkConversationAsReadRes);
+  rpc GetUnreadCount (GetUnreadCountReq) returns (GetUnreadCountRes);
+
+  rpc UploadFile (UploadFileReq) returns (UploadFileRes);
+  rpc GetFile (GetFileReq) returns (GetFileRes);
+}
+
+message CreateConversationReq {
+    repeated string users = 1;
+    string createrId = 2;
+}
+
+message CreateConversationRes {
+    string id = 1;
+}
+
+message AddMemberReq {
+    string conversationId = 1;
+    string userId = 2;
+    string memberId = 3;
+}
+
+message AddMemberRes {
+    bool success = 1;
+    string conversationId = 2;
+}
+
+message RemoveMemberReq {
+    string conversationId = 1;
+    string userId = 2;
+    string memberId = 3;
+}
+
+message RemoveMemberRes {
+    bool success = 1;
+    string conversationId = 2;
+}
+
+message UpdateConversationReq {
+    string conversationId = 1;
+    string userId = 2;
+    string name = 3;
+    string avatar = 4;
+}
+
+message UpdateConversationRes {
+    string id = 1;
+    string name = 2;
+    string avatar = 3;
+}
+
+message Conversation {
+  string id = 1;
+  string name = 2;
+  string avatar = 3;
+  string type = 4;
+  repeated ConversationParticipant participants = 5;
+}
+
+message ConversationParticipant {
+  string id = 1;
+  string fullName = 2;
+  string avatar = 3;
+  string role = 4;
+  string email = 5;
+}
+
+message GetConversationsReq {
+  string userId = 1;
+  int32 limit = 2;
+  optional string afterCursor = 3;
+  optional string beforeCursor = 4;
+}
+
+message GetConversationsRes {
+  repeated Conversation data = 1;
+  CursorPagination pagination = 2;
+}
+
+message Message {
+  string id = 1;
+  string content = 2;
+  string senderId = 3;
+  string conversationId = 4;
+  string createdAt = 5;
+  string type = 6;
+  optional string parentMessageId = 7;
+}
+
+message GetMessagesReq {
+  string conversationId = 1;
+  string userId = 2;
+  int32 limit = 3;
+  optional string afterCursor = 4;
+  optional string beforeCursor = 5;
+}
+
+message GetMessagesRes {
+  repeated Message data = 1;
+  CursorPagination pagination = 2;
+}
+
+message MarkMessageAsReadReq {
+  string conversationId = 1;
+  string messageId = 2;
+  string userId = 3;
+}
+
+message MarkMessageAsReadRes {
+  bool success = 1;
+}
+
+message CreateMessageReq {
+  string conversationId = 1;
+  string userId = 2;
+  string content = 3;
+  string type = 4;
+  optional string parentMessageId = 5;
+}
+
+message CreateMessageRes {
+  string id = 1;
+  string content = 2;
+  string senderId = 3;
+  string conversationId = 4;
+  string createdAt = 5;
+  string type = 6;
+  optional string parentMessageId = 7;
+}
+
+message UploadFileReq {
+  string filename = 1;
+  string userId = 2; // useful for context
+}
+message UploadFileRes {
+  string url = 1;
+}
+message GetFileReq {
+  string fileId = 1;
+}
+message GetFileRes {
+  string url = 1;
+}
+
+message GetConversationReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message DeleteConversationReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message DeleteConversationRes {
+  bool success = 1;
+}
+
+message DeleteMessageReq {
+  string conversationId = 1;
+  string messageId = 2;
+  string userId = 3;
+}
+
+message DeleteMessageRes {
+  bool success = 1;
+}
+
+message AddReactionReq {
+  string messageId = 1;
+  string userId = 2;
+  string emoji = 3;
+}
+
+message AddReactionRes {
+  bool success = 1;
+}
+
+message RemoveReactionReq {
+  string messageId = 1;
+  string userId = 2;
+  string emoji = 3;
+}
+
+message RemoveReactionRes {
+  bool success = 1;
+}
+
+message GetReactionsReq {
+  string messageId = 1;
+}
+
+message Reaction {
+  string id = 1;
+  string userId = 2;
+  string emoji = 3;
+}
+
+message GetReactionsRes {
+  repeated Reaction reactions = 1;
+}
+
+message ToggleMuteReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message ToggleMuteRes {
+  bool isMuted = 1;
+}
+
+message GetMuteStatusReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message GetMuteStatusRes {
+  bool isMuted = 1;
+}
+
+message PinMessageReq {
+  string conversationId = 1;
+  string messageId = 2;
+  string userId = 3;
+}
+
+message PinMessageRes {
+  bool success = 1;
+}
+
+message UnpinMessageReq {
+  string conversationId = 1;
+  string messageId = 2;
+  string userId = 3;
+}
+
+message UnpinMessageRes {
+  bool success = 1;
+}
+
+message GetPinnedMessagesReq {
+  string conversationId = 1;
+}
+
+message PinnedMessage {
+  string id = 1;
+  string messageId = 2;
+  string pinnedAt = 3;
+}
+
+message GetPinnedMessagesRes {
+  repeated PinnedMessage messages = 1;
+}
+
+message MarkConversationAsReadReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message MarkConversationAsReadRes {
+  bool success = 1;
+}
+
+message GetUnreadCountReq {
+  string conversationId = 1;
+  string userId = 2;
+}
+
+message GetUnreadCountRes {
+  int32 count = 1;
+}

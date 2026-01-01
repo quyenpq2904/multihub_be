@@ -8,13 +8,17 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "es2015",
+    "target": "es2019",
     "module": "esnext",
-    "lib": ["es2020", "dom"],
+    "lib": ["es2021", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "strictPropertyInitialization": false,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@multihub/shared-common": ["libs/shared-common/src/index.ts"],
+      "@multihub/shared-dtos": ["libs/shared-dtos/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
