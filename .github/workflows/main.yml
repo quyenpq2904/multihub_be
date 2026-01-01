@@ -2,8 +2,8 @@ name: Continuous Deployment
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 jobs:
   docker-compose:
@@ -11,7 +11,11 @@ jobs:
     environment: production
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create env file
         run: |
@@ -30,4 +34,4 @@ jobs:
           echo "REFRESH_TOKEN_EXPIRES_IN=${{ secrets.REFRESH_TOKEN_EXPIRES_IN }}" >> .env
 
       - name: Run compose up container
-        run: docker compose -f docker-compose.prod.yml up --build -d
+        run: docker compose -f docker-compose.yml up --build -d
