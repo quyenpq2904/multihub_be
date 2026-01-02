@@ -10,7 +10,7 @@ import { AllConfigType } from './config/config.type';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<AllConfigType>);
-  const redisIoAdapter = new RedisIoAdapter(app);
+  const redisIoAdapter = new RedisIoAdapter(app.get(ConfigService));
   await redisIoAdapter.connectToRedis();
   app.useWebSocketAdapter(redisIoAdapter);
   app.useGlobalPipes(new ValidationPipe());
