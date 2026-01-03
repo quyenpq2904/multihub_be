@@ -1,5 +1,5 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { IWorker } from './types/media-resources.interfaces';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { IWorker } from './media-resources.type';
 import * as os from 'os';
 import * as mediasoup from 'mediasoup';
 
