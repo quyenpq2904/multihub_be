@@ -3,6 +3,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
+import { CallGateway } from './call.gateway';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '../../config/config.type';
 
@@ -15,8 +16,11 @@ import { AllConfigType } from '../../config/config.type';
         useFactory: (configService: ConfigService<AllConfigType>) => ({
           transport: Transport.GRPC,
           options: {
-            package: 'chat',
-            protoPath: [join(__dirname, 'protos/chat.proto')],
+            package: ['chat', 'sfu'],
+            protoPath: [
+              join(__dirname, 'protos/chat.proto'),
+              join(__dirname, 'protos/sfu.proto'),
+            ],
             url: configService.getOrThrow('app.chatGrpcUrl', { infer: true }),
           },
         }),
@@ -24,6 +28,6 @@ import { AllConfigType } from '../../config/config.type';
     ]),
   ],
   controllers: [ChatController],
-  providers: [ChatGateway],
+  providers: [ChatGateway, CallGateway],
 })
 export class ChatModule {}

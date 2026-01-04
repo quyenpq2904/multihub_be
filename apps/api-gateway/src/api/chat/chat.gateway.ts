@@ -15,8 +15,12 @@ import { CreateMessageReq, CreateMessageRes } from '@multihub/shared-dtos';
 import { Uuid } from '@multihub/shared-common';
 import { Server, Socket } from 'socket.io';
 import { SendMessageReqDto } from './dtos/send-message.dto';
+import { CHAT_GATEWAY_MESSAGE } from './chat.type';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  namespace: 'chat',
+  cors: true,
+})
 export class ChatGateway
   implements
     OnGatewayInit,
@@ -49,27 +53,37 @@ export class ChatGateway
     delete this.connectedClients[client.id];
   }
 
-  @SubscribeMessage('joinRoom')
+  @SubscribeMessage(CHAT_GATEWAY_MESSAGE.JOIN_ROOM)
   handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() roomId: string,
   ) {
     client.join(roomId);
-    client.emit('joinedRoom', { roomId, message: `Joined room ${roomId}` });
-    this.server.to(roomId).emit('userJoined', { userId: client.id, roomId });
+    client.emit(CHAT_GATEWAY_MESSAGE.JOINED_ROOM, {
+      roomId,
+      message: `Joined room ${roomId}`,
+    });
+    this.server
+      .to(roomId)
+      .emit(CHAT_GATEWAY_MESSAGE.USER_JOINED, { userId: client.id, roomId });
   }
 
-  @SubscribeMessage('leaveRoom')
+  @SubscribeMessage(CHAT_GATEWAY_MESSAGE.LEAVE_ROOM)
   handleLeaveRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() roomId: string,
   ) {
     client.leave(roomId);
-    client.emit('leftRoom', { roomId, message: `Left room ${roomId}` });
-    this.server.to(roomId).emit('userLeft', { userId: client.id, roomId });
+    client.emit(CHAT_GATEWAY_MESSAGE.LEFT_ROOM, {
+      roomId,
+      message: `Left room ${roomId}`,
+    });
+    this.server
+      .to(roomId)
+      .emit(CHAT_GATEWAY_MESSAGE.USER_LEFT, { userId: client.id, roomId });
   }
 
-  @SubscribeMessage('sendMessage')
+  @SubscribeMessage(CHAT_GATEWAY_MESSAGE.SEND_MESSAGE)
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: SendMessageReqDto,
@@ -88,7 +102,7 @@ export class ChatGateway
     };
     this.server
       .to(body.conversationId as unknown as string)
-      .emit('message', response);
+      .emit(CHAT_GATEWAY_MESSAGE.MESSAGE, response);
   }
 }
 
