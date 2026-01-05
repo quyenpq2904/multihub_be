@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package sfu;
+
+service SfuService {
+  rpc CreateRoom (CreateRoomReq) returns (CreateRoomRes);
+  rpc CreateWebRtcTransport (CreateWebRtcTransportReq) returns (CreateWebRtcTransportRes);
+  rpc ConnectTransport (ConnectTransportReq) returns (ConnectTransportRes);
+  rpc Produce (ProduceReq) returns (ProduceRes);
+  rpc Consume (ConsumeReq) returns (ConsumeRes);
+  rpc GetProducers (GetProducersReq) returns (GetProducersRes);
+  rpc GetPeers (GetPeersReq) returns (GetPeersRes);
+  rpc LeaveRoom (LeaveRoomReq) returns (LeaveRoomRes);
+}
+
+message CreateRoomReq {
+  string roomId = 1;
+}
+
+message CreateRoomRes {
+  string rtpCapabilities = 1; // JSON string
+}
+
+message CreateWebRtcTransportReq {
+  string roomId = 1;
+  string peerId = 2;
+  string direction = 3; // "send" or "recv"
+}
+
+message CreateWebRtcTransportRes {
+  string id = 1;
+  string iceParameters = 2; // JSON string
+  string iceCandidates = 3; // JSON string
+  string dtlsParameters = 4; // JSON string
+}
+
+message ConnectTransportReq {
+  string roomId = 1;
+  string peerId = 2;
+  string transportId = 3;
+  string dtlsParameters = 4; // JSON string
+}
+
+message ConnectTransportRes {
+  bool connected = 1;
+}
+
+message ProduceReq {
+  string roomId = 1;
+  string peerId = 2;
+  string transportId = 3;
+  string kind = 4; // "audio" or "video"
+  string rtpParameters = 5; // JSON string
+}
+
+message ProduceRes {
+  string producerId = 1;
+}
+
+message ConsumeReq {
+  string roomId = 1;
+  string peerId = 2;
+  string producerId = 3;
+  string transportId = 4;
+  string rtpCapabilities = 5; // JSON string
+}
+
+message ConsumeRes {
+  string consumerId = 1;
+  string producerId = 2;
+  string kind = 3;
+  string rtpParameters = 4; // JSON string
+}
+
+message GetProducersReq {
+  string roomId = 1;
+}
+
+message ProducerInfo {
+  string producerId = 1;
+  string peerId = 2;
+  string kind = 3;
+}
+
+message GetProducersRes {
+  repeated ProducerInfo producers = 1;
+}
+
+message LeaveRoomReq {
+  string roomId = 1;
+  string peerId = 2;
+}
+
+message LeaveRoomRes {
+  bool success = 1;
+}
+
+message GetPeersReq {
+  string roomId = 1;
+}
+
+message GetPeersRes {
+  repeated string peerIds = 1;
+}
