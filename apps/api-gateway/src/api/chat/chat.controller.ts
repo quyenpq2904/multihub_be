@@ -10,6 +10,7 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes } from '@nestjs/swagger';
@@ -31,6 +32,12 @@ import {
   MarkMessageAsReadRes,
   UploadFileReq,
   UploadFileRes,
+  PinMessageReq,
+  PinMessageRes,
+  UnpinMessageReq,
+  UnpinMessageRes,
+  GetPinnedMessagesReq,
+  GetPinnedMessagesRes,
 } from '@multihub/shared-dtos';
 import { lastValueFrom, Observable } from 'rxjs';
 import {
@@ -38,6 +45,11 @@ import {
   CreateConversationResDto,
 } from './dtos/create-conversation.dto';
 import { JwtPayloadType, Uuid } from '@multihub/shared-common';
+import {
+  PinMessageResDto,
+  UnpinMessageResDto,
+  GetPinnedMessagesResDto,
+} from './dtos/pin-message.dto';
 import {
   GetConversationsReqDto,
   GetConversationsListResDto,
@@ -73,6 +85,11 @@ interface ChatServiceGrpc {
     req: MarkMessageAsReadReq,
   ): Observable<MarkMessageAsReadRes>;
   uploadFile(req: UploadFileReq): Observable<UploadFileRes>;
+  pinMessage(req: PinMessageReq): Observable<PinMessageRes>;
+  unpinMessage(req: UnpinMessageReq): Observable<UnpinMessageRes>;
+  getPinnedMessages(
+    req: GetPinnedMessagesReq,
+  ): Observable<GetPinnedMessagesRes>;
 }
 
 @Controller('chats')
@@ -216,6 +233,59 @@ export class ChatController implements OnModuleInit {
         conversationId: conversationId as Uuid,
         messageId: messageId as Uuid,
         userId: jwtPayload.id,
+      }),
+    );
+  }
+
+  @Post(':conversationId/messages/:messageId/pin')
+  @ApiAuth({
+    type: PinMessageResDto,
+    summary: 'Pin message',
+  })
+  async pinMessage(
+    @Param('conversationId') conversationId: string,
+    @Param('messageId') messageId: string,
+    @CurrentUser() jwtPayload: JwtPayloadType,
+  ): Promise<PinMessageResDto> {
+    return await lastValueFrom(
+      this.chatService.pinMessage({
+        conversationId: conversationId as Uuid,
+        messageId: messageId as Uuid,
+        userId: jwtPayload.id,
+      }),
+    );
+  }
+
+  @Delete(':conversationId/messages/:messageId/pin')
+  @ApiAuth({
+    type: UnpinMessageResDto,
+    summary: 'Unpin message',
+  })
+  async unpinMessage(
+    @Param('conversationId') conversationId: string,
+    @Param('messageId') messageId: string,
+    @CurrentUser() jwtPayload: JwtPayloadType,
+  ): Promise<UnpinMessageResDto> {
+    return await lastValueFrom(
+      this.chatService.unpinMessage({
+        conversationId: conversationId as Uuid,
+        messageId: messageId as Uuid,
+        userId: jwtPayload.id,
+      }),
+    );
+  }
+
+  @Get(':conversationId/pinned-messages')
+  @ApiAuth({
+    type: GetPinnedMessagesResDto,
+    summary: 'Get pinned messages',
+  })
+  async getPinnedMessages(
+    @Param('conversationId') conversationId: string,
+  ): Promise<GetPinnedMessagesResDto> {
+    return await lastValueFrom(
+      this.chatService.getPinnedMessages({
+        conversationId: conversationId as Uuid,
       }),
     );
   }
